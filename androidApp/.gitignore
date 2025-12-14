@@ -1,0 +1,60 @@
+# Logs
+*.log
+# Temporary files
+*.tmp
+*~
+
+*.bak
+# Environment files (containing secrets, API keys, credentials)
+.env
+*.env
+
+# Local configuration that shouldn't be shared
+*.local
+
+### Androidstudio ###
+# Android Studio IDE files and settings
+
+# Android Studio
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+local.properties
+*.apk
+*.ap_
+*.dex
+*.class
+
+bin/
+gen/
+out/
+.navigation/
+proguard/
+
+*.log
+.idea/tasks.xml
+.idea/.name
+.idea/compiler.xml
+.idea/copyright/profiles_settings.xml
+
+.idea/encodings.xml
+.idea/misc.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+*.iws
+
+.idea_modules/
