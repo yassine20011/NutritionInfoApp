@@ -1,13 +1,10 @@
-const { Product, Category, Nutrition, Additive } = require('../models');
+const { Product } = require('../models');
 const { calculateHealthScore, getNutriScoreGrade, getScoreCategory } = require('../utils/scoreCalculator');
-const { Op } = require('sequelize');
-
-const includeAll = [Category, Nutrition, Additive];
 
 // Helper to add score info to product response
 function enrichProductWithScore(product) {
-  const plain = product.toJSON();
-  const score = calculateHealthScore(plain, plain.Nutrition, plain.Additives || []);
+  const plain = product.toObject ? product.toObject() : product;
+  const score = calculateHealthScore(plain, plain.nutrition, plain.additives || []);
   const category = getScoreCategory(score);
   return {
     ...plain,
@@ -19,16 +16,13 @@ function enrichProductWithScore(product) {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    // Pagination: ?limit=20&offset=0
-    const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
     const offset = parseInt(req.query.offset) || 0;
 
-    const { count, rows: products } = await Product.findAndCountAll({
-      include: includeAll,
-      limit,
-      offset,
-      order: [['id', 'DESC']] // Newest first
-    });
+    const [products, count] = await Promise.all([
+      Product.find().sort({ _id: -1 }).skip(offset).limit(limit),
+      Product.countDocuments()
+    ]);
 
     const enriched = products.map(enrichProductWithScore);
     res.json({
@@ -45,7 +39,7 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findByPk(req.params.id, { include: includeAll });
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(enrichProductWithScore(product));
   } catch (error) {
@@ -55,10 +49,7 @@ exports.getProductById = async (req, res) => {
 
 exports.getProductByBarcode = async (req, res) => {
   try {
-    const product = await Product.findOne({
-      where: { barcode: req.params.code },
-      include: includeAll
-    });
+    const product = await Product.findOne({ barcode: req.params.code });
     
     if (product) {
       return res.json(enrichProductWithScore(product));
@@ -72,20 +63,16 @@ exports.getProductByBarcode = async (req, res) => {
 
 exports.getAlternatives = async (req, res) => {
   try {
-    const product = await Product.findByPk(req.params.id, { include: [Category] });
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Find similar products in same category with higher score
-    const alternatives = await Product.findAll({
-      where: {
-        id: { [Op.ne]: product.id },
-        categoryId: product.categoryId,
-        score: { [Op.gt]: product.score || 0 }
-      },
-      include: includeAll,
-      order: [['score', 'DESC']],
-      limit: 5
-    });
+    const alternatives = await Product.find({
+      _id: { $ne: product._id },
+      category: product.category,
+      score: { $gt: product.score || 0 }
+    })
+      .sort({ score: -1 })
+      .limit(5);
 
     res.json(alternatives.map(enrichProductWithScore));
   } catch (error) {
@@ -95,27 +82,19 @@ exports.getAlternatives = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
   try {
-    const { name, brand, barcode, categoryId, imageUrl, ingredients, isOrganic, nutrition, additiveIds } = req.body;
+    const { name, brand, barcode, category, imageUrl, ingredients, isOrganic, nutrition, additives } = req.body;
     
-    const product = await Product.create({
-      name, brand, barcode, categoryId, imageUrl, ingredients, isOrganic
+    const product = new Product({
+      name, brand, barcode, category, imageUrl, ingredients, isOrganic, nutrition, additives
     });
 
-    if (nutrition) {
-      await product.createNutrition(nutrition);
-    }
+    // Calculate score before saving
+    const score = calculateHealthScore(product, nutrition, additives || []);
+    product.score = score;
+    product.nutriScore = getNutriScoreGrade(score);
 
-    if (additiveIds && additiveIds.length > 0) {
-      await product.setAdditives(additiveIds);
-    }
-    
-    // Recalculate score
-    const fullProduct = await Product.findByPk(product.id, { include: includeAll });
-    const score = calculateHealthScore(fullProduct.toJSON(), fullProduct.Nutrition?.toJSON(), fullProduct.Additives || []);
-    await fullProduct.update({ score, nutriScore: getNutriScoreGrade(score) });
-
-    const final = await Product.findByPk(product.id, { include: includeAll });
-    res.status(201).json(enrichProductWithScore(final));
+    await product.save();
+    res.status(201).json(enrichProductWithScore(product));
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -123,33 +102,22 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const { nutrition, additiveIds, ...productData } = req.body;
-    const product = await Product.findByPk(req.params.id);
+    const { nutrition, additives, ...productData } = req.body;
+    const product = await Product.findById(req.params.id);
     
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    await product.update(productData);
-
-    if (nutrition) {
-      const existingNutrition = await product.getNutrition();
-      if (existingNutrition) {
-        await existingNutrition.update(nutrition);
-      } else {
-        await product.createNutrition(nutrition);
-      }
-    }
-
-    if (additiveIds !== undefined) {
-      await product.setAdditives(additiveIds);
-    }
+    Object.assign(product, productData);
+    if (nutrition) product.nutrition = nutrition;
+    if (additives !== undefined) product.additives = additives;
 
     // Recalculate score
-    const fullProduct = await Product.findByPk(product.id, { include: includeAll });
-    const score = calculateHealthScore(fullProduct.toJSON(), fullProduct.Nutrition?.toJSON(), fullProduct.Additives || []);
-    await fullProduct.update({ score, nutriScore: getNutriScoreGrade(score) });
+    const score = calculateHealthScore(product, product.nutrition, product.additives || []);
+    product.score = score;
+    product.nutriScore = getNutriScoreGrade(score);
 
-    const updatedProduct = await Product.findByPk(product.id, { include: includeAll });
-    res.json(enrichProductWithScore(updatedProduct));
+    await product.save();
+    res.json(enrichProductWithScore(product));
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -157,10 +125,9 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByPk(req.params.id);
+    const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-    await product.destroy();
     res.json({ message: 'Product deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -170,16 +137,13 @@ exports.deleteProduct = async (req, res) => {
 exports.searchProducts = async (req, res) => {
   try {
     const query = req.params.query;
-    const products = await Product.findAll({
-      where: {
-        [Op.or]: [
-          { name: { [Op.like]: `%${query}%` } },
-          { brand: { [Op.like]: `%${query}%` } }
-        ]
-      },
-      include: includeAll,
-      limit: 50
-    });
+    const products = await Product.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { brand: { $regex: query, $options: 'i' } }
+      ]
+    }).limit(50);
+    
     res.json(products.map(enrichProductWithScore));
   } catch (error) {
     res.status(500).json({ error: error.message });
