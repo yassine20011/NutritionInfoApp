@@ -4,14 +4,14 @@ A Yuka-style product scanner Android app. Scan barcodes to get health scores, nu
 
 ## Features
 
-- 📷 **Barcode Scanner** - ML Kit barcode detection with CameraX
-- 🎯 **Health Scoring** - Color-coded 0-100 health score
-- 🔤 **NutriScore** - A-E grade display
-- 📊 **Nutrition Facts** - Detailed breakdown with indicators
-- ⚠️ **Additive Warnings** - Risk levels (none/limited/moderate/hazardous)
-- 🥗 **Alternatives** - Healthier product suggestions
-- 📜 **Scan History** - Track scanned products
-- ⭐ **Favorites** - Save preferred products
+- 📷 **Barcode Scanner** — ML Kit barcode detection with CameraX
+- 🎯 **Health Scoring** — Color-coded 0-100 health score
+- 🔤 **NutriScore** — A-E grade display
+- 📊 **Nutrition Facts** — Detailed breakdown with indicators
+- ⚠️ **Additive Warnings** — Risk levels (none/limited/moderate/hazardous)
+- 🥗 **Alternatives** — Healthier product suggestions
+- 📜 **Scan History** — Track scanned products
+- ⭐ **Favorites** — Save preferred products
 
 ## Screenshots
 

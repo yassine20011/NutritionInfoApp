@@ -1,31 +1,30 @@
 # ProductInfoApp Backend
 
-A Node.js/Express backend for a Yuka-style product scanner app. Provides health scoring, nutrition data, additive analysis, powered by a local OpenFoodFacts database.
+A Node.js/Express backend for a Yuka-style product scanner app. Provides health scoring, nutrition data, additive analysis, powered by a local Open Food Facts database.
 
 ## Features
 
-- 🔍 **Barcode Lookup** - Search products by barcode from local database
-- 🔎 **Product Search** - Search products by name or brand
-- 📊 **Health Scoring** - NutriScore-inspired 0-100 health score calculation
-- ⚠️ **Additive Analysis** - Risk level assessment for food additives
-- 🥗 **Healthier Alternatives** - Find better products in the same category
-- 🌿 **Organic Detection** - Identifies organic products
+- 🔍 **Barcode Lookup** — Search products by barcode
+- 🔎 **Product Search** — Search products by name or brand
+- 📊 **Health Scoring** — NutriScore-inspired 0-100 health score calculation
+- ⚠️ **Additive Analysis** — Risk level assessment for food additives
+- 🥗 **Healthier Alternatives** — Find better products in the same category
+- 🌿 **Organic Detection** — Identifies organic products
 
 ## Tech Stack
 
 - **Runtime:** Node.js
 - **Framework:** Express.js
-- **Database:** MySQL with Sequelize ORM
-- **Data Source:** OpenFoodFacts database (local import)
+- **Database:** MongoDB (Mongoose ODM)
+- **Data Source:** Open Food Facts database (local import)
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 16+
-- MySQL 8.0+
-- Docker (optional)
-- OpenFoodFacts JSONL database file
+- Node.js 18+
+- MongoDB 6.0+
+- Open Food Facts JSONL database file
 
 ### Installation
 
@@ -35,34 +34,31 @@ npm install
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your database credentials
+# Edit .env with your MongoDB URI
 
-# Start with Docker (recommended)
-docker-compose up -d
+# Start development server
+npm run dev
 
-# Or start manually
+# Or start production server
 npm start
 ```
 
-### Importing OpenFoodFacts Data
+### Importing Open Food Facts Data
 
-Download the OpenFoodFacts products database (JSONL format) and run the import script:
+1. Download the [Open Food Facts JSONL export](https://world.openfoodfacts.org/data)
+2. Place file at `~/Downloads/openfoodfacts-products.jsonl`
+3. Run the import:
 
 ```bash
-# Place your downloaded file at ~/Downloads/openfoodfacts-products.jsonl
-node scripts/importOFF.js
+npm run import
 ```
 
-The script will import products, nutrition data, and additives into your local MySQL database.
+The script imports products with nutrition data, additives, and calculates health scores.
 
 ### Environment Variables
 
 ```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=productinfo_db
-DB_PORT=3306
+MONGO_URI=mongodb://localhost:27017/productinfo_db
 PORT=3000
 ```
 
@@ -72,31 +68,27 @@ PORT=3000
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/products` | List all products |
-| GET | `/api/products/:id` | Get product by ID |
-| GET | `/api/products/barcode/:code` | Get product by barcode |
-| GET | `/api/products/search/:query` | Search products by name/brand |
-| GET | `/api/products/:id/alternatives` | Get healthier alternatives |
-| POST | `/api/products` | Create product |
-| PUT | `/api/products/:id` | Update product |
-| DELETE | `/api/products/:id` | Delete product |
+| GET | `/products` | List all products (paginated) |
+| GET | `/products/:id` | Get product by ID |
+| GET | `/products/barcode/:code` | Get product by barcode |
+| GET | `/products/search/:query` | Search products by name/brand |
+| GET | `/products/:id/alternatives` | Get healthier alternatives |
+| POST | `/products` | Create product |
+| PUT | `/products/:id` | Update product |
+| DELETE | `/products/:id` | Delete product |
 
 ### Response Format
 
 ```json
 {
-  "id": 1,
+  "_id": "507f1f77bcf86cd799439011",
   "barcode": "3017620422003",
   "name": "Nutella",
   "brand": "Ferrero",
-  "calculatedScore": 14,
-  "scoreCategory": {
-    "label": "Bad",
-    "color": "#F44336"
-  },
-  "nutriScoreGrade": "E",
+  "score": 14,
+  "nutriScore": "E",
   "isOrganic": false,
-  "Nutrition": {
+  "nutrition": {
     "calories": 539,
     "sugar": 56.3,
     "fat": 30.9,
@@ -105,12 +97,8 @@ PORT=3000
     "protein": 6.3,
     "fiber": 0
   },
-  "Additives": [
-    {
-      "code": "E322",
-      "name": "Lecithin",
-      "riskLevel": "none"
-    }
+  "additives": [
+    { "code": "E322", "name": "Lecithin", "riskLevel": "none" }
   ]
 }
 ```
@@ -134,22 +122,22 @@ Score Categories:
 ## Project Structure
 
 ```
-├── controllers/
-│   └── productController.js    # API handlers
-├── models/
-│   ├── Product.js              # Product model
-│   ├── Nutrition.js            # Nutrition data
-│   ├── Additive.js             # Additive info
-│   └── index.js                # Associations
-├── routes/
-│   └── productRoutes.js        # Route definitions
-├── scripts/
-│   └── importOFF.js            # OpenFoodFacts import script
-├── utils/
-│   └── scoreCalculator.js      # Health scoring
+backend/
+├── app.js                       # Entry point
 ├── config/
-│   └── database.js             # DB connection
-└── app.js                      # Entry point
+│   └── database.js              # MongoDB connection
+├── controllers/
+│   └── productController.js     # API handlers
+├── models/
+│   ├── Product.js               # Mongoose product schema
+│   └── index.js                 # Model exports
+├── routes/
+│   └── productRoutes.js         # Route definitions
+├── scripts/
+│   ├── importOFF.js             # Open Food Facts import
+│   └── recalculateScores.js     # Batch score recalculation
+└── utils/
+    └── scoreCalculator.js       # Health score algorithm
 ```
 
 ## License
