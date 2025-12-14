@@ -2,21 +2,19 @@ const fs = require("fs");
 const readline = require("readline");
 const os = require("os");
 const path = require("path");
-const { sequelize, Product, Nutrition, Additive } = require("../models/index.js");
+require("dotenv").config();
+const { connectDB, Product } = require("../models");
+const { calculateHealthScore, getNutriScoreGrade } = require("../utils/scoreCalculator");
+
+const BATCH_SIZE = 1000;
 
 async function importProducts() {
     try {
-        // Connect to database first
-        await sequelize.authenticate();
-        console.log("Database connected successfully.");
-
-        // Sync tables (create if not exist)
-        await sequelize.sync();
-        console.log("Tables synced.");
+        await connectDB();
+        console.log("MongoDB connected successfully.");
 
         const filePath = path.join(os.homedir(), "Downloads", "openfoodfacts-products.jsonl");
         
-        // Check if file exists
         if (!fs.existsSync(filePath)) {
             console.error(`File not found: ${filePath}`);
             process.exit(1);
@@ -30,6 +28,7 @@ async function importProducts() {
             crlfDelay: Infinity,
         });
 
+        let batch = [];
         let count = 0;
         let errors = 0;
 
@@ -40,44 +39,52 @@ async function importProducts() {
                 // Skip empty items
                 if (!p.product_name || !p.code) continue;
 
-                // Insert product
-                const product = await Product.create({
+                // Build nutrition object
+                const nutrition = p.nutriments ? {
+                    calories: p.nutriments["energy-kcal_100g"] || 0,
+                    sugar: p.nutriments["sugars_100g"] || 0,
+                    fat: p.nutriments["fat_100g"] || 0,
+                    saturatedFat: p.nutriments["saturated-fat_100g"] || 0,
+                    salt: p.nutriments["salt_100g"] || 0,
+                    protein: p.nutriments["proteins_100g"] || 0,
+                    fiber: p.nutriments["fiber_100g"] || 0
+                } : null;
+
+                // Build additives array
+                const additives = (p.additives_tags || []).map(a => ({
+                    code: a,
+                    name: a.replace("en:", ""),
+                    riskLevel: "none"
+                }));
+
+                // Calculate health score
+                const productData = {
                     barcode: p.code,
                     name: p.product_name,
                     brand: p.brands,
                     imageUrl: p.image_url,
                     ingredients: p.ingredients_text,
-                    nutriScoreGrade: p.nutriscore_grade
-                });
+                    category: p.categories_tags?.[0]?.replace("en:", "") || null,
+                    isOrganic: p.labels_tags?.includes("en:organic") || false,
+                    nutrition,
+                    additives
+                };
 
-                // Insert nutrition details
-                if (p.nutriments) {
-                    await Nutrition.create({
-                        productId: product.id,
-                        calories: p.nutriments["energy-kcal_100g"],
-                        sugar: p.nutriments["sugars_100g"],
-                        fat: p.nutriments["fat_100g"],
-                        saturatedFat: p.nutriments["saturated-fat_100g"],
-                        salt: p.nutriments["salt_100g"],
-                        protein: p.nutriments["proteins_100g"],
-                        fiber: p.nutriments["fiber_100g"]
+                const score = calculateHealthScore(productData, nutrition, additives);
+                productData.score = score;
+                productData.nutriScore = getNutriScoreGrade(score);
+
+                batch.push(productData);
+
+                // Bulk insert when batch is full
+                if (batch.length >= BATCH_SIZE) {
+                    await Product.insertMany(batch, { ordered: false }).catch(err => {
+                        // Ignore duplicate key errors
+                        if (err.code !== 11000) throw err;
                     });
-                }
-
-                // Insert additives
-                if (p.additives_tags?.length) {
-                    for (const a of p.additives_tags) {
-                        await Additive.create({
-                            productId: product.id,
-                            code: a,
-                            name: a.replace("en:", "")
-                        });
-                    }
-                }
-
-                count++;
-                if (count % 100 === 0) {
+                    count += batch.length;
                     console.log(`Imported ${count} products...`);
+                    batch = [];
                 }
 
             } catch (err) {
@@ -85,8 +92,16 @@ async function importProducts() {
                 if (errors <= 5) {
                     console.error(`Error on line: ${err.message}`);
                 }
-                continue; // Skip malformed lines
+                continue;
             }
+        }
+
+        // Insert remaining batch
+        if (batch.length > 0) {
+            await Product.insertMany(batch, { ordered: false }).catch(err => {
+                if (err.code !== 11000) throw err;
+            });
+            count += batch.length;
         }
 
         console.log(`\nImport done. Total: ${count} products, ${errors} errors.`);

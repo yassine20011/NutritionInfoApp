@@ -1,15 +1,12 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: product_info_mysql
+  mongodb:
+    image: mongo:7.0
+    container_name: product_info_mongodb
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
     ports:
-      - "3307:3306"
+      - "27017:27017"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mongodb-data:/data/db
 
 volumes:
-  mysql-data:
+  mongodb-data:
