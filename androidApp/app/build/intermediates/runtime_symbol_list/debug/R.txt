@@ -3200,6 +3200,8 @@ int id animateToEnd 0x7f080057
 int id animateToStart 0x7f080058
 int id antiClockwise 0x7f080059
 int id anticipate 0x7f08005a
+int id appSubtitle 0x7f080228
+int id appTitle 0x7f080229
 int id arc 0x7f08005b
 int id asConfigured 0x7f08005c
 int id async 0x7f08005d
@@ -3301,6 +3303,7 @@ int id edge 0x7f0800bc
 int id edit_query 0x7f0800bd
 int id elastic 0x7f0800be
 int id embed 0x7f0800bf
+int id emptyStateContainer 0x7f08022a
 int id emptyText 0x7f0800c0
 int id end 0x7f0800c1
 int id endToStart 0x7f0800c2
@@ -3535,6 +3538,8 @@ int id scrollIndicatorDown 0x7f0801a6
 int id scrollIndicatorUp 0x7f0801a7
 int id scrollView 0x7f0801a8
 int id scrollable 0x7f0801a9
+int id searchCard 0x7f08022b
+int id searchEditText 0x7f08022c
 int id search_badge 0x7f0801aa
 int id search_bar 0x7f0801ab
 int id search_button 0x7f0801ac

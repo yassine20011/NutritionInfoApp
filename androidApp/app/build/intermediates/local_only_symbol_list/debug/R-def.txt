@@ -14,11 +14,14 @@ id alternativeScore
 id alternativeScoreIndicator
 id alternativesCard
 id alternativesRecyclerView
+id appSubtitle
+id appTitle
 id closeButton
 id detailBrand
 id detailImage
 id detailIngredients
 id detailName
+id emptyStateContainer
 id emptyText
 id fabHistory
 id fabScan
@@ -44,6 +47,8 @@ id scoreCategory
 id scoreCircle
 id scoreExplanation
 id scoreValue
+id searchCard
+id searchEditText
 id servingSize
 id tabLayout
 id textBrand

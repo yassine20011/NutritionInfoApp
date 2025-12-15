@@ -13,7 +13,7 @@ public interface ProductDao {
     LiveData<List<ProductEntity>> getAllProducts();
 
     @Query("SELECT * FROM products WHERE id = :id")
-    LiveData<ProductEntity> getProductById(int id);
+    LiveData<ProductEntity> getProductById(String id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<ProductEntity> products);

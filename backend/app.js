@@ -17,7 +17,7 @@ connectDB()
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on http://0.0.0.0:${PORT}`);
-      console.log(`Access from phone: http://192.168.1.11:${PORT}`);
+      console.log(`Access from phone: http://192.168.1.129:${PORT}`);
     });
   })
   .catch((err) => {

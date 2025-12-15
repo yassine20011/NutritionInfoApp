@@ -13,13 +13,13 @@ public interface ApiService {
     Call<ProductListResponse> getProducts(@Query("limit") int limit, @Query("offset") int offset);
 
     @GET("products/{id}")
-    Call<Product> getProductById(@Path("id") int id);
+    Call<Product> getProductById(@Path("id") String id);
 
     @GET("products/barcode/{code}")
     Call<Product> getProductByBarcode(@Path("code") String barcode);
 
     @GET("products/{id}/alternatives")
-    Call<List<Product>> getAlternatives(@Path("id") int id);
+    Call<List<Product>> getAlternatives(@Path("id") String id);
 
     @GET("products/search/{query}")
     Call<List<Product>> searchProducts(@Path("query") String query);

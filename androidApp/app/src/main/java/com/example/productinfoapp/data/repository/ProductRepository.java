@@ -47,7 +47,7 @@ public class ProductRepository {
         return allProducts;
     }
     
-    public LiveData<Product> getProductById(int id) {
+    public LiveData<Product> getProductById(String id) {
         // Here we can fetch detail from API to get more info, 
         // updating the local DB mostly for list. 
         // For detail, we can observe DB if list has enough info, 
@@ -91,7 +91,7 @@ public class ProductRepository {
         });
     }
     
-    private void refreshProductDetail(int id) {
+    private void refreshProductDetail(String id) {
          apiService.getProductById(id).enqueue(new Callback<Product>() {
             @Override
             public void onResponse(Call<Product> call, Response<Product> response) {

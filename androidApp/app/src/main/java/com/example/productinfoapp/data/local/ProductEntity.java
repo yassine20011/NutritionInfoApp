@@ -10,7 +10,8 @@ import com.example.productinfoapp.data.model.Product;
 @Entity(tableName = "products")
 public class ProductEntity {
     @PrimaryKey
-    public int id;
+    @androidx.annotation.NonNull
+    public String id;
     
     public String barcode;
     public String name;

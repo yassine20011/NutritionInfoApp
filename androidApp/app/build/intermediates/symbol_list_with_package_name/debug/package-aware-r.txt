@@ -3201,6 +3201,8 @@ id animateToEnd
 id animateToStart
 id antiClockwise
 id anticipate
+id appSubtitle
+id appTitle
 id arc
 id asConfigured
 id async
@@ -3302,6 +3304,7 @@ id edge
 id edit_query
 id elastic
 id embed
+id emptyStateContainer
 id emptyText
 id end
 id endToStart
@@ -3536,6 +3539,8 @@ id scrollIndicatorDown
 id scrollIndicatorUp
 id scrollView
 id scrollable
+id searchCard
+id searchEditText
 id search_badge
 id search_bar
 id search_button

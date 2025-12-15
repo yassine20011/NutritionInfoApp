@@ -5,8 +5,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Product implements Serializable {
-    @SerializedName("id")
-    private int id;
+    @SerializedName("_id")
+    private String id;
 
     @SerializedName("barcode")
     private String barcode;
@@ -38,17 +38,17 @@ public class Product implements Serializable {
     @SerializedName("nutriScoreGrade")
     private String nutriScoreGrade;
 
-    @SerializedName("Nutrition")
+    @SerializedName("nutrition")
     private Nutrition nutrition;
 
     @SerializedName("scoreCategory")
     private ScoreCategory scoreCategory;
 
-    @SerializedName("Additives")
+    @SerializedName("additives")
     private List<Additive> additives;
 
     // Getters
-    public int getId() { return id; }
+    public String getId() { return id; }
     public String getBarcode() { return barcode; }
     public String getName() { return name; }
     public String getBrand() { return brand; }
@@ -67,7 +67,7 @@ public class Product implements Serializable {
     public Product() {}
 
     // Setters (for Room entity conversion)
-    public void setId(int id) { this.id = id; }
+    public void setId(String id) { this.id = id; }
     public void setBarcode(String barcode) { this.barcode = barcode; }
     public void setName(String name) { this.name = name; }
     public void setBrand(String brand) { this.brand = brand; }

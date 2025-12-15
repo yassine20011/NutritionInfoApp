@@ -29,7 +29,7 @@ import retrofit2.Response;
 
 public class ProductDetailActivity extends AppCompatActivity {
     private ProductDetailViewModel viewModel;
-    private int productId;
+    private String productId;
 
     private ImageView detailImage;
     private TextView detailName, detailBrand, nutriScoreBadge, organicBadge;
@@ -47,7 +47,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
 
-        productId = getIntent().getIntExtra("product_id", -1);
+        productId = getIntent().getStringExtra("product_id");
 
         initViews();
         setupAlternativesRecyclerView();
@@ -55,7 +55,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         apiService = RetrofitClient.getApiService();
         viewModel = new ViewModelProvider(this).get(ProductDetailViewModel.class);
 
-        if (productId != -1) {
+        if (productId != null) {
             viewModel.getProduct(productId).observe(this, this::displayProduct);
             loadAlternatives();
         }

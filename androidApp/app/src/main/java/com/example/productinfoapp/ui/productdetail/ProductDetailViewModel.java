@@ -15,7 +15,7 @@ public class ProductDetailViewModel extends AndroidViewModel {
         repository = new ProductRepository(application);
     }
 
-    public LiveData<Product> getProduct(int id) {
+    public LiveData<Product> getProduct(String id) {
         return repository.getProductById(id);
     }
 }
