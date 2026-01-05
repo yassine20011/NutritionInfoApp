@@ -136,7 +136,3 @@ annotationProcessor 'androidx.room:room-compiler:2.6.1'
 | 50-74 | Good | 🟢 Light Green |
 | 25-49 | Poor | 🟠 Orange |
 | 0-24 | Bad | 🔴 Red |
-
-## License
-
-MIT
