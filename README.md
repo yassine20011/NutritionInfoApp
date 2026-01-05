@@ -1,4 +1,4 @@
-# ProductInfoApp
+# NutritionInfoApp
 
 > **Projet de Développement Mobile**  
 > Application de scan de produits alimentaires inspirée de Yuka — Scannez les codes-barres pour obtenir scores nutritionnels, analyse des additifs et alternatives plus saines.
