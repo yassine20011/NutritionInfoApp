@@ -60,7 +60,7 @@ ProductInfoApp est une application mobile Android permettant aux utilisateurs de
 
 ---
 
-## 🏗 Architecture du Projet
+## Architecture du Projet
 
 ```
 ProductInfoApp/

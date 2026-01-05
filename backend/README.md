@@ -140,7 +140,3 @@ backend/
     └── scoreCalculator.js       # Health score algorithm
 ```
 
-## License
-
-MIT
-
