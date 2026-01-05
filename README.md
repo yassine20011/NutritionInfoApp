@@ -125,9 +125,7 @@ Le score (0-100) est calculé selon :
 ### Captures d'Écran
 
 
-<video width="640" height="480" controls>
-  <source src="demo.mp4" type="video/mp4">
-</video>
+![Demo de l'application](demo.gif)
 
 
 | Écran Principal | Scanner | Détail Produit | Historique |
